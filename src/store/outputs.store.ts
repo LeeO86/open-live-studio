@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { devtools } from 'zustand/middleware'
-import { outputsApi, type ApiOutput, type OutputType } from '@/lib/api'
+import { outputsApi, type ApiOutput, type OutputType, type MxlTap, type MxlAudioSource, type MxlBackend } from '@/lib/api'
 
-export type { ApiOutput as Output, OutputType }
+export type { ApiOutput as Output, OutputType, MxlTap, MxlAudioSource, MxlBackend }
 
 interface OutputsState {
   outputs: ApiOutput[]
@@ -13,8 +13,25 @@ interface OutputsState {
 
 interface OutputsActions {
   fetchAll: () => Promise<void>
-  addOutput: (body: { name: string; outputType: OutputType; url?: string }) => Promise<ApiOutput>
-  updateOutput: (id: string, body: { name?: string; url?: string }) => Promise<void>
+  addOutput: (body: {
+    name: string
+    outputType: OutputType
+    url?: string
+    mxlTap?: MxlTap
+    mxlDomain?: string
+    mxlAudioFlowId?: string
+    mxlAudioSource?: MxlAudioSource
+    mxlBackend?: MxlBackend
+  }) => Promise<ApiOutput>
+  updateOutput: (id: string, body: {
+    name?: string
+    url?: string
+    mxlTap?: MxlTap
+    mxlDomain?: string
+    mxlAudioFlowId?: string
+    mxlAudioSource?: MxlAudioSource
+    mxlBackend?: MxlBackend
+  }) => Promise<void>
   removeOutput: (id: string) => Promise<void>
 }
 

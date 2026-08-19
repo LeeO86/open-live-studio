@@ -49,7 +49,11 @@ async function request<T>(path: string, init?: RequestOptions): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export type StreamType = 'srt' | 'efp' | 'whip' | 'test1' | 'test2' | 'html'
+export type StreamType = 'srt' | 'efp' | 'whip' | 'test1' | 'test2' | 'html' | 'mxl' | 'decklink'
+
+export type MxlBackend = 'auto' | 'gpu' | 'cpu'
+export type MxlTap = 'pgm' | 'multiview'
+export type MxlAudioSource = 'main' | 'monitor'
 
 export interface ApiSource {
   id: string
@@ -59,6 +63,12 @@ export interface ApiSource {
   status: 'active' | 'inactive'
   liveCamera?: boolean
   latency?: number
+  mxlDomain?: string
+  mxlAudioFlowId?: string
+  mxlBackend?: MxlBackend
+  decklinkMode?: string
+  decklinkConnection?: string
+  decklinkVideoFormat?: string
 }
 
 export interface ProductionSourceAssignment {
@@ -71,13 +81,20 @@ export interface ProductionGraphicAssignment {
   dskInput: string
 }
 
-export type OutputType = 'mpegtssrt' | 'efpsrt' | 'whep'
+export type OutputType = 'mpegtssrt' | 'efpsrt' | 'whep' | 'mxl'
 
 export interface ApiOutput {
   id: string
   name: string
   outputType: OutputType
   url?: string
+  mxlTap?: MxlTap
+  mxlDomain?: string
+  mxlAudioFlowId?: string
+  mxlAudioSource?: MxlAudioSource
+  mxlBackend?: MxlBackend
+  mxlLabel?: string
+  mxlGroupHint?: string
   createdAt: string
   updatedAt: string
 }
@@ -379,13 +396,34 @@ export const outputsApi = {
   list: () =>
     request<ApiOutput[]>('/api/v1/outputs'),
 
-  create: (body: { name: string; outputType: OutputType; url?: string }) =>
+  create: (body: {
+    name: string
+    outputType: OutputType
+    url?: string
+    mxlTap?: MxlTap
+    mxlDomain?: string
+    mxlAudioFlowId?: string
+    mxlAudioSource?: MxlAudioSource
+    mxlBackend?: MxlBackend
+    mxlLabel?: string
+    mxlGroupHint?: string
+  }) =>
     request<ApiOutput>('/api/v1/outputs', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
 
-  update: (id: string, body: { name?: string; url?: string }) =>
+  update: (id: string, body: {
+    name?: string
+    url?: string
+    mxlTap?: MxlTap
+    mxlDomain?: string
+    mxlAudioFlowId?: string
+    mxlAudioSource?: MxlAudioSource
+    mxlBackend?: MxlBackend
+    mxlLabel?: string
+    mxlGroupHint?: string
+  }) =>
     request<ApiOutput>(`/api/v1/outputs/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(body),
