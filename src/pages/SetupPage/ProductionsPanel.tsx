@@ -26,6 +26,8 @@ const STREAM_TYPE_LABELS = {
   html: 'HTML',
   test1: 'Pinwheel',
   test2: 'Colors',
+  mxl: 'MXL',
+  decklink: 'DeckLink',
 } as const
 
 // ---------------------------------------------------------------------------
@@ -63,7 +65,7 @@ function SlotRow({ index: _index, currentSourceId, canRemove, onChange, onRemove
           }, {}),
         )
           .sort(([a], [b]) => {
-            const ORDER = ['srt', 'efp', 'html', 'whip']
+            const ORDER = ['srt', 'efp', 'mxl', 'decklink', 'html', 'whip']
             const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b)
             if (ai !== -1 && bi !== -1) return ai - bi
             if (ai !== -1) return -1
@@ -142,6 +144,7 @@ function toCallerUrl(url: string, stromHost?: string): string {
 const OUTPUT_TYPE_LABELS: Record<string, string> = {
   mpegtssrt: 'MPEG-TS/SRT',
   efpsrt: 'EFP/SRT',
+  mxl: 'MXL',
 }
 
 interface OutputSlotRowProps {
@@ -170,7 +173,7 @@ function OutputSlotRow({ value, usedIds, takenByOtherIds, canRemove, onChange, o
             }, {}),
         )
           .sort(([a], [b]) => {
-            const ORDER = ['mpegtssrt', 'efpsrt']
+            const ORDER = ['mpegtssrt', 'efpsrt', 'mxl']
             const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b)
             if (ai !== -1 && bi !== -1) return ai - bi
             if (ai !== -1) return -1
@@ -472,7 +475,7 @@ function ProductionOptionsModal({ production, onClose }: OptionsModalProps) {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1">
                 <span className="text-xs uppercase tracking-wider text-orange-500">Outputs</span>
-                <InfoTip text="Output destinations where the programme signal is sent — SRT transmitters or EFP encoders." />
+                <InfoTip text="Output destinations where the programme signal is sent — SRT, EFP, or MXL (PGM and/or multiview)." />
               </div>
               {isActive ? (
                 <div className="flex flex-col gap-1.5">
@@ -713,7 +716,7 @@ function CreateProductionModal({ onClose, onCreated }: CreateModalProps) {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-1">
                 <span className="text-xs uppercase tracking-wider text-orange-500">Outputs</span>
-                <InfoTip text="Output destinations where the programme signal is sent — SRT transmitters or EFP encoders." />
+                <InfoTip text="Output destinations where the programme signal is sent — SRT, EFP, or MXL (PGM and/or multiview)." />
               </div>
               <div className="flex flex-col gap-2">
                 {outputList.map((id, i) => (
@@ -986,6 +989,10 @@ export function ProductionsPanel() {
                   {isActive && prod.outputAssignments?.flatMap((a) => {
                     const out = outputs.find((o) => o.id === a.outputId)
                     if (!out || out.outputType === 'whep' || !out.url) return []
+                    if (out.outputType === 'mxl') {
+                      const tap = out.mxlTap === 'multiview' ? 'MV' : 'PGM'
+                      return [<InlineCopyButton key={a.outputId} label={`MXL ${tap}: ${out.name}`} value={out.url} />]
+                    }
                     return [<InlineCopyButton key={a.outputId} label={`SRT OUT: ${out.name}`} value={toCallerUrl(out.url, stromHost)} />]
                   })}
                   {isActive && prod.whepOutputUrls?.map((w) => {

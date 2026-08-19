@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { devtools } from 'zustand/middleware'
-import { sourcesApi, type ApiSource, type StreamType } from '@/lib/api'
+import { sourcesApi, type ApiSource, type StreamType, type MxlBackend } from '@/lib/api'
 
 export type SourceStatus = 'active' | 'inactive'
 
@@ -14,6 +14,12 @@ export interface Source {
   color: string
   liveCamera?: boolean
   latency?: number
+  mxlDomain?: string
+  mxlAudioFlowId?: string
+  mxlBackend?: MxlBackend
+  decklinkMode?: string
+  decklinkConnection?: string
+  decklinkVideoFormat?: string
 }
 
 interface SourcesState {
@@ -27,7 +33,7 @@ interface SourcesActions {
   refresh: () => Promise<void>
   addSource: (source: Omit<Source, 'id'>) => Promise<void>
   removeSource: (id: string) => Promise<void>
-  updateSource: (id: string, fields: Partial<Pick<Source, 'name' | 'address' | 'latency'>>) => Promise<void>
+  updateSource: (id: string, fields: Partial<Omit<Source, 'id' | 'color'>>) => Promise<void>
   updateStatus: (id: string, status: SourceStatus) => Promise<void>
 }
 
@@ -43,6 +49,12 @@ function fromApi(s: ApiSource): Source {
     color: SOURCE_COLOR,
     liveCamera: s.liveCamera,
     latency: s.latency,
+    mxlDomain: s.mxlDomain,
+    mxlAudioFlowId: s.mxlAudioFlowId,
+    mxlBackend: s.mxlBackend,
+    decklinkMode: s.decklinkMode,
+    decklinkConnection: s.decklinkConnection,
+    decklinkVideoFormat: s.decklinkVideoFormat,
   }
 }
 
@@ -96,11 +108,7 @@ export const useSourcesStore = create<SourcesState & SourcesActions>()(
         const updated = await sourcesApi.update(id, fields)
         set((state) => {
           const source = state.sources.find((s) => s.id === id)
-          if (source) {
-            if (updated.name !== undefined) source.name = updated.name
-            if (updated.address !== undefined) source.address = updated.address
-            if (updated.latency !== undefined) source.latency = updated.latency
-          }
+          if (source) Object.assign(source, fromApi(updated), { color: source.color })
         })
       },
 
